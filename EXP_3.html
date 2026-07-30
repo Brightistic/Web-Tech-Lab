@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chic Style - Online Fashion Magazine</title>
+    <style>
+        /* Base page background & typography */
+        body {
+            background-color: #f7f7f7;
+            font-family: georgia, garamond, serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Header Section */
+        header {
+            background-color: #ffffff;
+            text-align: center;
+            padding-top: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        header h1 {
+            font-size: 36px;
+            font-weight: bolder;
+            letter-spacing: 5px;
+            color: #111111;
+            text-shadow: 2px 2px 5px #cccccc;
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
+
+        /* Navigation Menu */
+        nav {
+            text-align: center;
+            margin-top: 15px;
+            margin-bottom: 15px;
+        }
+
+        nav ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        nav li {
+            display: inline;
+        }
+
+        /* Link Pseudo-classes */
+        a:link {
+            color: green;
+            text-decoration: underline;
+            padding-left: 10px;
+            padding-right: 10px;
+        }
+
+        a:visited {
+            color: #555555;
+        }
+
+        a:hover {
+            background-color: lightgreen;
+            color: #000000;
+        }
+
+        a:active {
+            background-color: hotpink;
+        }
+
+        /* Main Container - Page Layout */
+        .container {
+            width: 80%;
+            margin-top: 30px;
+            margin-bottom: 30px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* Card Section - Normal Flow */
+        .magazine-article {
+            background-color: #ffffff;
+            padding-top: 25px;
+            padding-bottom: 25px;
+            padding-left: 20px;
+            padding-right: 20px;
+            margin-bottom: 25px;
+        }
+
+        .article-title {
+            color: green;
+            font-size: 22px;
+            font-weight: bold;
+            letter-spacing: 2px;
+            margin-top: 0px;
+            margin-bottom: 15px;
+        }
+
+        /* Multicolumn Layout */
+        .column-content {
+            column-count: 2;
+            column-gap: 30px;
+        }
+
+        .column-content p {
+            font-size: 16px;
+            font-style: italic;
+            color: #333333;
+            margin-top: 0px;
+            margin-bottom: 15px;
+        }
+
+        /* Styled Bullet List */
+        .trend-list {
+            list-style-type: circle;
+            padding-left: 25px;
+        }
+
+        .trend-list li {
+            font-size: 16px;
+            padding-top: 5px;
+            padding-bottom: 5px;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            background-color: #222222;
+            color: #ffffff;
+            height: 50px;
+            padding-top: 15px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header Section -->
+    <header>
+        <h1>VOGUE STYLE</h1>
+        <nav>
+            <ul>
+                <li><a href="#trends">Trends</a></li>
+                <li><a href="#runway">Runway</a></li>
+                <li><a href="#lifestyle">Lifestyle</a></li>
+                <li><a href="#contact">Contact</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Main Content Container -->
+    <div class="container">
+        
+        <!-- Multi-column Article -->
+        <article class="magazine-article">
+            <h2 class="article-title">Autumn Lookbook 2026</h2>
+            <div class="column-content">
+                <p>
+                    This season brings a fresh perspective to classic tailoring and warm palette combinations. Oversized trench coats paired with structured boots are defining streetwear across Paris and Milan.
+                </p>
+                <p>
+                    Sustainable fabrics and vintage gold accents highlight effortless elegance. Explore how subtle textures and minimal designs create timeless looks for every day.
+                </p>
+            </div>
+        </article>
+
+        <!-- Sidebar / List Section -->
+        <section class="magazine-article">
+            <h3 class="article-title">Top Weekly Trends</h3>
+            <ul class="trend-list">
+                <li>Monochrome Pastel Suits</li>
+                <li>Eco-friendly Silk Blouses</li>
+                <li>Wide-leg Tailored Trousers</li>
+                <li>Chunky Vintage Leather Accessories</li>
+            </ul>
+        </section>
+
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2026 Vogue Style Magazine. All rights reserved.</p>
+    </footer>
+
+</body>
+</html>
