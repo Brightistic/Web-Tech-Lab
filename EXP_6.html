@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>The Style Edit - Styles & Animations</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #fafafa;
+      color: #333;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background: #2c2c2c;
+      color: #fff;
+      padding: 20px;
+    }
+    #clock {
+      font-size: 20px;
+      margin-top: 8px;
+    }
+    section {
+      padding: 20px;
+    }
+    button {
+      margin: 8px;
+      padding: 8px 14px;
+      background: #d97757;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+    }
+    #banner {
+      width: 200px;
+      height: 60px;
+      background: #d97757;
+      color: white;
+      line-height: 60px;
+      position: relative;
+      margin: 20px auto;
+    }
+    #promo {
+      margin-top: 15px;
+    }
+    #saleBox {
+      width: 80px;
+      height: 80px;
+      background: green;
+      margin: 20px auto;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header with live digital clock -->
+  <header>
+    <h1>The Style Edit</h1>
+    <p id="clock"></p>
+  </header>
+
+  <!-- 1. Changing styles with JS -->
+  <section>
+    <h2 id="title">New Autumn Collection</h2>
+    <button onclick="changeStyle()">Highlight Title</button>
+  </section>
+
+  <!-- 2. Show/Hide element -->
+  <section>
+    <p id="promo">Flat 20% off on all outfits this week!</p>
+    <button onclick="hidePromo()">Hide Offer</button>
+    <button onclick="showPromo()">Show Offer</button>
+  </section>
+
+  <!-- 3. Moving banner animation -->
+  <section>
+    <div id="banner">SALE</div>
+    <button onclick="moveBanner()">Start Animation</button>
+  </section>
+
+  <!-- 4. Fade animation -->
+  <section>
+    <div id="saleBox"></div>
+    <button onclick="fadeBox()">Fade Out</button>
+  </section>
+
+  <script>
+    // Student ID: URK24CS1062
+
+    // 1. Digital clock using Date object + setInterval
+    function updateClock() {
+      var d = new Date();
+      document.getElementById("clock").innerHTML =
+        d.getHours() + ":" + d.getMinutes() + ":" + d.getSeconds();
+    }
+    setInterval(updateClock, 1000);
+
+    // 2. Changing style of an element
+    function changeStyle() {
+      var title = document.getElementById("title");
+      title.style.color = "#d97757";
+      title.style.fontSize = "30px";
+    }
+
+    // 3. Show and hide an element
+    function hidePromo() {
+      document.getElementById("promo").style.display = "none";
+    }
+    function showPromo() {
+      document.getElementById("promo").style.display = "block";
+    }
+
+    // 4. Moving animation using setInterval
+    function moveBanner() {
+      var banner = document.getElementById("banner");
+      var pos = 0;
+      var id = setInterval(function () {
+        if (pos == 200) {
+          clearInterval(id);
+        } else {
+          pos++;
+          banner.style.left = pos + "px";
+        }
+      }, 10);
+    }
+
+    // 5. Fade animation by reducing opacity
+    function fadeBox() {
+      var box = document.getElementById("saleBox");
+      var opacity = 1;
+      var id = setInterval(function () {
+        if (opacity <= 0) {
+          clearInterval(id);
+        } else {
+          opacity -= 0.05;
+          box.style.opacity = opacity;
+        }
+      }, 50);
+    }
+  </script>
+
+</body>
+</html>
