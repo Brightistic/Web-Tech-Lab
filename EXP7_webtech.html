@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Style Edit - jQuery Actions</title>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <style>
+    /* Simple, clean styling */
+    body {
+      font-family: Arial, sans-serif;
+      background: #fafafa;
+      color: #333;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background: #2c2c2c;
+      color: #fff;
+      text-align: center;
+      padding: 20px;
+    }
+    header h1 {
+      margin: 0;
+      letter-spacing: 2px;
+    }
+    section {
+      max-width: 800px;
+      margin: 20px auto;
+      padding: 15px;
+      background: #fff;
+      border: 1px solid #ddd;
+      text-align: center;
+    }
+    section h2 {
+      margin-top: 0;
+      color: #d97757;
+    }
+    button {
+      margin: 5px;
+      padding: 8px 16px;
+      background: #d97757;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+    }
+
+    /* 1. Budget Calculator */
+    #budget input {
+      width: 70px;
+      padding: 6px;
+      border: 1px solid #999;
+      text-align: center;
+    }
+    #budget #amount {
+      width: 100px;
+    }
+    .fields {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      justify-content: center;
+      margin: 10px 0;
+    }
+    .results {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      justify-content: center;
+      margin-top: 15px;
+    }
+    .box {
+      display: none;
+      width: 110px;
+      padding: 10px;
+      color: #fff;
+      text-align: left;
+    }
+    #b1, #b3 { background: #3b5bdb; }
+    #b2 { background: #2f9e44; }
+    #b4 { background: #e64980; }
+
+    /* 2. Fashion Shop */
+    .items {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      justify-content: center;
+      margin-bottom: 15px;
+    }
+    .item {
+      width: 140px;
+      padding: 15px;
+      border: 1px solid #ddd;
+    }
+    .item:hover {
+      background: #f0e6e0;
+    }
+    .item span {
+      display: block;
+      font-size: 50px;
+    }
+    .order {
+      max-width: 400px;
+      margin: 0 auto;
+      text-align: left;
+    }
+    .order label {
+      display: block;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+    .order input {
+      width: 100%;
+      padding: 8px;
+      box-sizing: border-box;
+      border: 1px solid #999;
+    }
+    #bill {
+      display: none;
+      margin-top: 15px;
+      padding-top: 10px;
+      border-top: 2px solid #d97757;
+      text-align: center;
+    }
+    #total {
+      color: #d97757;
+      font-size: 28px;
+      font-weight: bold;
+    }
+
+    /* 3. Mannequin Studio */
+    #studio {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      height: 280px;
+    }
+    #hat {
+      width: 80px;
+      height: 24px;
+      margin-bottom: -4px;
+      background: #2c2c2c;
+      border-radius: 40px 40px 4px 4px;
+      z-index: 1;
+    }
+    #head {
+      width: 50px;
+      height: 50px;
+      background: #f1c9a5;
+      border-radius: 50%;
+    }
+    #dress {
+      width: 120px;
+      height: 130px;
+      background: #d97757;
+      clip-path: polygon(35% 0, 65% 0, 100% 100%, 0 100%);
+    }
+    #shoes {
+      display: flex;
+      gap: 30px;
+    }
+    .shoe {
+      width: 40px;
+      height: 20px;
+      background: #2c2c2c;
+      border-radius: 50%;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header section -->
+  <header>
+    <h1>The Style Edit</h1>
+    <p>Your Online Fashion Magazine</p>
+  </header>
+
+  <!-- 1. Budget Calculator -->
+  <section id="budget">
+    <h2>Fashion Budget Calculator</h2>
+    <p>Enter the amount you want to manage</p>
+    <input type="text" id="amount" value="15000">
+    <p>How would you like to divide your money?</p>
+    <div class="fields">
+      <label>Clothing (%) <input type="text" class="percent" data-label="Clothing" value="50"></label>
+      <label>Accessories (%) <input type="text" class="percent" data-label="Accessories" value="20"></label>
+      <label>Footwear (%) <input type="text" class="percent" data-label="Footwear" value="20"></label>
+      <label>Savings (%) <input type="text" class="percent" data-label="Savings" value="10"></label>
+    </div>
+    <button id="calcBtn">Evaluate My Money</button>
+    <div class="results">
+      <div class="box" id="b1"></div>
+      <div class="box" id="b2"></div>
+      <div class="box" id="b3"></div>
+      <div class="box" id="b4"></div>
+    </div>
+  </section>
+
+  <!-- 2. Fashion Shop -->
+  <section id="shop">
+    <h2>Fashion Shop</h2>
+    <div class="items">
+      <div class="item"><span>&#129507;</span>Silk Scarf - Rs. 300</div>
+      <div class="item"><span>&#128374;</span>Sunglasses - Rs. 200</div>
+      <div class="item"><span>&#128092;</span>Handbag - Rs. 250</div>
+      <div class="item"><span>&#128095;</span>Sneakers - Rs. 350</div>
+    </div>
+    <div class="order">
+      <label>Silk Scarf (Quantity)</label>
+      <input type="number" min="0" class="qty" data-price="300" value="2">
+      <label>Sunglasses (Quantity)</label>
+      <input type="number" min="0" class="qty" data-price="200" value="1">
+      <label>Handbag (Quantity)</label>
+      <input type="number" min="0" class="qty" data-price="250" value="2">
+      <label>Sneakers (Quantity)</label>
+      <input type="number" min="0" class="qty" data-price="350" value="1">
+      <div style="text-align:center"><button id="orderBtn">Place Order</button></div>
+    </div>
+    <div id="bill">
+      <h3>Purchase Order Bill</h3>
+      Total Price: <span id="total"></span>
+    </div>
+  </section>
+
+  <!-- 3. Mannequin Studio -->
+  <section id="mannequin">
+    <h2>Mannequin Studio</h2>
+    <div id="studio">
+      <div id="hat"></div>
+      <div id="head"></div>
+      <div id="dress"></div>
+      <div id="shoes">
+        <div class="shoe"></div>
+        <div class="shoe"></div>
+      </div>
+    </div>
+    <p id="info"></p>
+    <button id="hatBtn">Change Hat Color</button>
+    <button id="dressBtn">Change Dress Color</button>
+    <button id="bigBtn">Shoe Size Increase</button>
+    <button id="smallBtn">Shoe Size Decrease</button>
+    <button id="resetBtn">Reset</button>
+  </section>
+
+  <script>
+    // Student ID: URK24CS1062
+    $(document).ready(function () {
+
+      // ---------- 1. Budget Calculator ----------
+      // Event: click on the "Evaluate My Money" button
+      $("#calcBtn").click(function () {
+        var amount = parseFloat($("#amount").val());
+        var total = 0;
+        var valid = !isNaN(amount);
+
+        // Add up all the percentage fields
+        $(".percent").each(function () {
+          var p = parseFloat($(this).val());
+          if (isNaN(p)) {
+            valid = false;
+          } else {
+            total += p;
+          }
+        });
+
+        if (!valid) {
+          alert("Please enter the amount and all the percentages.");
+          return;
+        }
+
+        // The amount can be divided only if the percentages add up to 100
+        if (Math.abs(total - 100) > 0.01) {
+          $(".box").hide();
+          alert("The amount cannot be divided. Percentages add up to " + total + "%, not 100%.");
+          return;
+        }
+
+        // Show each share in its own box
+        $(".percent").each(function (i) {
+          var share = amount * parseFloat($(this).val()) / 100;
+          $(".box").eq(i).html($(this).data("label") + "<br>Rs. " + share.toFixed(2));
+        });
+        $(".box").fadeIn();
+      });
+
+      // ---------- 2. Fashion Shop ----------
+      // Event: click on the "Place Order" button
+      $("#orderBtn").click(function () {
+        var total = 0;
+
+        // Quantity x price for every item
+        $(".qty").each(function () {
+          var quantity = parseInt($(this).val()) || 0;
+          var price = parseInt($(this).data("price"));
+          total += quantity * price;
+        });
+
+        $("#total").text("Rs. " + total);
+        $("#bill").slideDown();
+      });
+
+      // ---------- 3. Mannequin Studio ----------
+      var hatColors = ["#2c2c2c", "#3b5bdb", "#2f9e44", "#e64980"];
+      var dressColors = ["#d97757", "#3b5bdb", "#2f9e44", "#e64980", "#7048e8"];
+      var hatIndex = 0;
+      var dressIndex = 0;
+      var shoeSize = 40;
+
+      // Show the shoe size and resize both shoes smoothly
+      function updateShoes() {
+        $(".shoe").stop().animate({ width: shoeSize, height: shoeSize / 2 }, 200);
+        $("#info").text("Shoe size: " + shoeSize);
+      }
+      updateShoes();
+
+      // Event: change the hat colour
+      $("#hatBtn").click(function () {
+        hatIndex = (hatIndex + 1) % hatColors.length;
+        $("#hat").css("background", hatColors[hatIndex]);
+      });
+
+      // Event: change the dress colour
+      $("#dressBtn").click(function () {
+        dressIndex = (dressIndex + 1) % dressColors.length;
+        $("#dress").css("background", dressColors[dressIndex]);
+      });
+
+      // Event: increase the shoe size (maximum 70)
+      $("#bigBtn").click(function () {
+        if (shoeSize < 70) {
+          shoeSize += 10;
+          updateShoes();
+        }
+      });
+
+      // Event: decrease the shoe size (minimum 20)
+      $("#smallBtn").click(function () {
+        if (shoeSize > 20) {
+          shoeSize -= 10;
+          updateShoes();
+        }
+      });
+
+      // Event: reset everything to the starting look
+      $("#resetBtn").click(function () {
+        hatIndex = 0;
+        dressIndex = 0;
+        shoeSize = 40;
+        $("#hat").css("background", hatColors[0]);
+        $("#dress").css("background", dressColors[0]);
+        updateShoes();
+      });
+    });
+  </script>
+</body>
+</html>
