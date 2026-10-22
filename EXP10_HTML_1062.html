@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Style Edit - Node.js Server Preview</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #fafafa; color: #333; margin: 0; padding: 0; }
+    header { background: #2c2c2c; color: #fff; text-align: center; padding: 20px; }
+    header h1 { margin: 0; letter-spacing: 2px; }
+    header p { margin: 6px 0 0; }
+    section { max-width: 800px; margin: 20px auto; padding: 15px; background: #fff; border: 1px solid #ddd; }
+    h2 { margin-top: 0; font-size: 18px; }
+    .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+    select, input { padding: 9px; border: 1px solid #bbb; border-radius: 4px; font-size: 15px; }
+    input { flex: 1; min-width: 160px; }
+    button { padding: 9px 18px; background: #d97757; color: #fff; border: none; cursor: pointer; }
+    button.alt { background: #555; }
+    pre { background: #0c0c0c; color: #ccc; padding: 12px; border-radius: 4px; font-size: 14px;
+          white-space: pre-wrap; margin: 10px 0 0; min-height: 40px; }
+    iframe { width: 100%; height: 190px; border: 1px solid #ccc; margin-top: 10px; background: #fff; }
+    .meta { margin-top: 10px; font-size: 14px; color: #555; }
+    small { color: #777; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>The Style Edit</h1>
+    <p>Node.js HTTP Server &ndash; Request / Response Preview</p>
+  </header>
+
+  <section>
+    <h2>1. Start the server</h2>
+    <small>This page imitates server.js: the same request handler runs in your browser so you can see how a Node.js server responds.</small>
+    <pre id="terminal">PS C:\NodeServerApp&gt; </pre>
+    <button id="startBtn">node server.js</button>
+  </section>
+
+  <section>
+    <h2>2. Send a request</h2>
+    <div class="row">
+      <select id="method">
+        <option>GET</option>
+        <option>POST</option>
+        <option>PUT</option>
+        <option>DELETE</option>
+      </select>
+      <input id="url" value="/" placeholder="/home">
+      <button id="sendBtn">Send request</button>
+    </div>
+    <p>
+      Try:
+      <button class="alt" data-url="/">/</button>
+      <button class="alt" data-url="/home">/home</button>
+      <button class="alt" data-url="/about">/about</button>
+      <button class="alt" data-url="/new-arrivals?season=autumn">/new-arrivals?season=autumn</button>
+    </p>
+    <div class="meta" id="meta">The server is not running.</div>
+    <iframe id="view" title="Browser output"></iframe>
+  </section>
+
+  <script>
+    // Student ID: URK24CS1062
+    var running = false;
+    var terminal = document.getElementById("terminal");
+    var meta = document.getElementById("meta");
+    var view = document.getElementById("view");
+
+    // Same logic as the callback passed to http.createServer() in server.js
+    function handleRequest(req) {
+      return {
+        statusCode: 200,
+        headers: { "Content-Type": "text/html" },
+        body: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>The Style Edit - Node.js Server</title>
+        </head>
+        <body>
+            <h1>Welcome to The Style Edit!</h1>
+            <p>This fashion magazine page is served by a Node.js server.</p>
+            <p>Request URL: ${req.url}</p>
+            <p>Request Method: ${req.method}</p>
+        </body>
+        </html>
+    `
+      };
+    }
+
+    document.getElementById("startBtn").addEventListener("click", function () {
+      if (running) return;
+      running = true;
+      terminal.textContent = "PS C:\\NodeServerApp> node server.js\nServer running at http://localhost:3000";
+      meta.textContent = "Server is listening on port 3000. Send a request.";
+      this.disabled = true;
+    });
+
+    function send() {
+      if (!running) {
+        meta.textContent = "Connection refused: start the server first (node server.js).";
+        view.srcdoc = "<p style='font-family:Arial;color:#b00'>This site can't be reached - localhost refused to connect.</p>";
+        return;
+      }
+      var req = {
+        method: document.getElementById("method").value,
+        url: document.getElementById("url").value || "/"
+      };
+      var res = handleRequest(req);
+      view.srcdoc = res.body;
+      meta.textContent = req.method + " " + req.url + "  ->  " + res.statusCode + " OK   |   Content-Type: " + res.headers["Content-Type"];
+    }
+
+    document.getElementById("sendBtn").addEventListener("click", send);
+    document.querySelectorAll("button[data-url]").forEach(function (b) {
+      b.addEventListener("click", function () {
+        document.getElementById("url").value = b.getAttribute("data-url");
+        send();
+      });
+    });
+  </script>
+</body>
+</html>
