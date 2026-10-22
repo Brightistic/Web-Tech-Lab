@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Style Edit - MongoDB Shell Practice</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #fafafa; color: #333; margin: 0; padding: 0; }
+    header { background: #2c2c2c; color: #fff; text-align: center; padding: 20px; }
+    header h1 { margin: 0; letter-spacing: 2px; }
+    header p { margin: 6px 0 0; }
+    section { max-width: 900px; margin: 20px auto; padding: 15px; background: #fff; border: 1px solid #ddd; }
+    h2 { margin-top: 0; font-size: 18px; }
+    #terminal { background: #0c0c0c; color: #ccc; font-family: Consolas, monospace; font-size: 14px;
+                padding: 12px; height: 380px; overflow-y: auto; white-space: pre-wrap; border-radius: 4px; }
+    .cmd { color: #fff; }
+    .err { color: #ff7b72; }
+    textarea { width: 100%; box-sizing: border-box; height: 110px; margin-top: 10px; padding: 10px;
+               font-family: Consolas, monospace; font-size: 14px; border: 1px solid #bbb; border-radius: 4px; }
+    button { margin: 8px 6px 0 0; padding: 8px 16px; background: #d97757; color: #fff; border: none; cursor: pointer; }
+    button.alt { background: #555; }
+    .chips button { background: #f0e6e0; color: #333; font-size: 13px; padding: 6px 10px; }
+    .chips button:hover { background: #e6d3c9; }
+    small { color: #777; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>The Style Edit</h1>
+    <p>MongoDB Shell Practice &ndash; Garment Inventory</p>
+  </header>
+
+  <section>
+    <h2>Practice shell</h2>
+    <small>A small in-browser imitation of mongosh. Type a command (or click a sample below) and press Run or Ctrl+Enter.</small>
+    <div id="terminal"></div>
+    <textarea id="input" placeholder='use StyleEditDB'></textarea>
+    <button id="runBtn">Run</button>
+    <button id="clearBtn" class="alt">Clear screen</button>
+    <button id="resetBtn" class="alt">Reset database</button>
+  </section>
+
+  <section>
+    <h2>Sample commands (click to load)</h2>
+    <div class="chips" id="chips"></div>
+  </section>
+
+  <script>
+    // Student ID: URK24CS1062
+    var term = document.getElementById("terminal");
+    var input = document.getElementById("input");
+
+    // ---------- tiny in-memory MongoDB ----------
+    var dbs, current;
+    function resetDb() { dbs = {}; current = "test"; }
+    resetDb();
+
+    function ObjectId() {
+      var hex = "";
+      for (var i = 0; i < 24; i++) hex += Math.floor(Math.random() * 16).toString(16);
+      return { __oid: hex };
+    }
+    function isOid(v) { return v && typeof v === "object" && v.__oid; }
+
+    function getColl(name) {
+      if (!dbs[current]) dbs[current] = {};
+      if (!dbs[current][name]) dbs[current][name] = [];
+      return dbs[current][name];
+    }
+
+    function equal(a, b) { return JSON.stringify(a) === JSON.stringify(b); }
+
+    function matches(doc, q) {
+      return Object.keys(q || {}).every(function (k) {
+        var cond = q[k], val = doc[k];
+        if (cond && typeof cond === "object" && !isOid(cond) && !Array.isArray(cond) &&
+            Object.keys(cond).some(function (o) { return o[0] === "$"; })) {
+          return Object.keys(cond).every(function (op) {
+            var c = cond[op];
+            if (op === "$gt") return val > c;
+            if (op === "$gte") return val >= c;
+            if (op === "$lt") return val < c;
+            if (op === "$lte") return val <= c;
+            if (op === "$eq") return equal(val, c);
+            if (op === "$ne") return !equal(val, c);
+            if (op === "$in") return c.some(function (x) { return equal(x, val); });
+            if (op === "$nin") return !c.some(function (x) { return equal(x, val); });
+            throw new Error("Unsupported operator: " + op);
+          });
+        }
+        return equal(val, cond);
+      });
+    }
+
+    function project(doc, p) {
+      if (!p || !Object.keys(p).length) return doc;
+      var out = {}, include = Object.keys(p).some(function (k) { return p[k] && k !== "_id"; });
+      if (include) {
+        if (p._id !== 0) out._id = doc._id;
+        Object.keys(p).forEach(function (k) { if (p[k] && k !== "_id" && k in doc) out[k] = doc[k]; });
+      } else {
+        Object.keys(doc).forEach(function (k) { if (p[k] !== 0) out[k] = doc[k]; });
+      }
+      return out;
+    }
+
+    function Cursor(docs, proj) {
+      this.__cursor = true; this.docs = docs; this.proj = proj;
+    }
+    Cursor.prototype.sort = function (s) {
+      var key = Object.keys(s)[0], dir = s[key];
+      this.docs = this.docs.slice().sort(function (a, b) { return a[key] < b[key] ? -dir : a[key] > b[key] ? dir : 0; });
+      return this;
+    };
+    Cursor.prototype.limit = function (n) { this.docs = this.docs.slice(0, n); return this; };
+    Cursor.prototype.skip = function (n) { this.docs = this.docs.slice(n); return this; };
+    Cursor.prototype.pretty = function () { return this; };
+    Cursor.prototype.toArray = function () { var p = this.proj; return this.docs.map(function (d) { return project(d, p); }); };
+
+    function Collection(name) {
+      var self = this;
+      this.insertOne = function (doc) {
+        doc = Object.assign({ _id: ObjectId() }, doc);
+        getColl(name).push(doc);
+        return { acknowledged: true, insertedId: doc._id };
+      };
+      this.insertMany = function (docs) {
+        var ids = {};
+        docs.forEach(function (d, i) { ids[i] = self.insertOne(d).insertedId; });
+        return { acknowledged: true, insertedIds: ids };
+      };
+      this.find = function (q, proj) {
+        return new Cursor(getColl(name).filter(function (d) { return matches(d, q); }), proj);
+      };
+      this.findOne = function (q, proj) {
+        var f = getColl(name).filter(function (d) { return matches(d, q); })[0];
+        return f ? project(f, proj) : null;
+      };
+      function apply(doc, u) {
+        if (u.$set) Object.assign(doc, u.$set);
+        if (u.$inc) Object.keys(u.$inc).forEach(function (k) { doc[k] = (doc[k] || 0) + u.$inc[k]; });
+        if (u.$unset) Object.keys(u.$unset).forEach(function (k) { delete doc[k]; });
+      }
+      function update(q, u, many) {
+        var hits = getColl(name).filter(function (d) { return matches(d, q); });
+        if (!many) hits = hits.slice(0, 1);
+        hits.forEach(function (d) { apply(d, u); });
+        return { acknowledged: true, insertedId: null, matchedCount: hits.length, modifiedCount: hits.length, upsertedCount: 0 };
+      }
+      this.updateOne = function (q, u) { return update(q, u, false); };
+      this.updateMany = function (q, u) { return update(q, u, true); };
+      function remove(q, many) {
+        var coll = getColl(name), n = 0;
+        for (var i = 0; i < coll.length; ) {
+          if (matches(coll[i], q) && (many || n === 0)) { coll.splice(i, 1); n++; } else i++;
+        }
+        return { acknowledged: true, deletedCount: n };
+      }
+      this.deleteOne = function (q) { return remove(q, false); };
+      this.deleteMany = function (q) { return remove(q, true); };
+      this.countDocuments = function (q) { return getColl(name).filter(function (d) { return matches(d, q); }).length; };
+      this.drop = function () { delete dbs[current][name]; return true; };
+    }
+
+    var db = new Proxy({}, {
+      get: function (t, name) {
+        if (name === "createCollection") return function (n) { getColl(n); return { ok: 1 }; };
+        if (name === "getCollectionNames") return function () { return Object.keys(dbs[current] || {}); };
+        if (name === "dropDatabase") return function () { delete dbs[current]; return { ok: 1, dropped: current }; };
+        if (typeof name === "symbol") return undefined;
+        return new Collection(name);
+      }
+    });
+
+    // ---------- mongosh-style output ----------
+    function fmt(v, ind) {
+      ind = ind || "";
+      if (v === null) return "null";
+      if (v === undefined) return "undefined";
+      if (isOid(v)) return "ObjectId('" + v.__oid + "')";
+      if (typeof v === "string") return "'" + v.replace(/'/g, "\\'") + "'";
+      if (typeof v !== "object") return String(v);
+      var inner = ind + "  ", parts;
+      if (Array.isArray(v)) {
+        if (!v.length) return "[]";
+        parts = v.map(function (x) { return fmt(x, inner); });
+        var one = "[ " + parts.join(", ") + " ]";
+        if (one.length <= 72 && one.indexOf("\n") < 0) return one;
+        return "[\n" + parts.map(function (p) { return inner + p; }).join(",\n") + "\n" + ind + "]";
+      }
+      var keys = Object.keys(v);
+      if (!keys.length) return "{}";
+      parts = keys.map(function (k) { return k + ": " + fmt(v[k], inner); });
+      var oneLine = "{ " + parts.join(", ") + " }";
+      if (oneLine.length <= 72 && oneLine.indexOf("\n") < 0) return oneLine;
+      return "{\n" + parts.map(function (p) { return inner + p; }).join(",\n") + "\n" + ind + "}";
+    }
+
+    function print(text, cls) {
+      var d = document.createElement("div");
+      if (cls) d.className = cls;
+      d.textContent = text;
+      term.appendChild(d);
+      term.scrollTop = term.scrollHeight;
+    }
+
+    // ---------- command runner ----------
+    function exec(code) {
+      var clean = code.split("\n").filter(function (l) { return l.trim().indexOf("//") !== 0; }).join("\n").trim();
+      if (!clean) return;
+      print(current + "> " + code.trim(), "cmd");
+      var m;
+      try {
+        if ((m = clean.match(/^use\s+(\w+)$/))) { current = m[1]; return print("switched to db " + current); }
+        if (clean === "show dbs" || clean === "show databases") {
+          var names = Object.keys(dbs).filter(function (n) { return Object.keys(dbs[n]).some(function (c) { return dbs[n][c].length; }); });
+          if (!names.length) return print("");
+          return print(names.map(function (n) { return n.padEnd(12) + " 40.00 KiB"; }).join("\n"));
+        }
+        if (clean === "show collections") return print(Object.keys(dbs[current] || {}).join("\n"));
+        if (clean === "db") return print(current);
+        // split into statements so several commands can be pasted together
+        var result = new Function("db", "ObjectId", "return (" + clean.replace(/;$/, "") + ")")(db, ObjectId);
+        if (result && result.__cursor) result = result.toArray();
+        if (result !== undefined) print(fmt(result));
+      } catch (e) {
+        try {
+          var r2 = new Function("db", "ObjectId", clean)(db, ObjectId);
+          if (r2 && r2.__cursor) r2 = r2.toArray();
+          if (r2 !== undefined) print(fmt(r2));
+        } catch (e2) {
+          print("MongoServerError: " + e2.message, "err");
+        }
+      }
+    }
+
+    document.getElementById("runBtn").addEventListener("click", function () {
+      var v = input.value;
+      if (!v.trim()) return;
+      // run each blank-line separated block as its own command
+      v.split(/\n\s*\n/).forEach(exec);
+      input.value = "";
+    });
+    input.addEventListener("keydown", function (e) {
+      if (e.ctrlKey && e.key === "Enter") document.getElementById("runBtn").click();
+    });
+    document.getElementById("clearBtn").addEventListener("click", function () { term.innerHTML = ""; });
+    document.getElementById("resetBtn").addEventListener("click", function () {
+      resetDb(); term.innerHTML = ""; print("Database reset. Start with: use StyleEditDB");
+    });
+
+    // ---------- sample commands ----------
+    var samples = [
+      ["use StyleEditDB", "use StyleEditDB"],
+      ["createCollection", 'db.createCollection("garments")'],
+      ["show collections", "show collections"],
+      ["insertOne", 'db.garments.insertOne({ itemId: 101, name: "Denim Jacket", category: "Outerwear", stock: 20, price: 2500 })'],
+      ["insertMany", 'db.garments.insertMany([\n  { itemId: 102, name: "Silk Saree", category: "Ethnic", stock: 12, price: 5200 },\n  { itemId: 103, name: "Cotton Kurta", category: "Ethnic", stock: 35, price: 1200 },\n  { itemId: 104, name: "Leather Handbag", category: "Accessories", stock: 20, price: 3800 },\n  { itemId: 105, name: "Canvas Sneakers", category: "Footwear", stock: 40, price: 1650 },\n  { itemId: 106, name: "Floral Scarf", category: "Accessories", stock: 60, price: 450 }\n])'],
+      ["find()", "db.garments.find()"],
+      ["find by name", 'db.garments.find({ name: "Silk Saree" })'],
+      ["findOne", 'db.garments.findOne({ category: "Ethnic" })'],
+      ["price $gt 2000", "db.garments.find({ price: { $gt: 2000 } })"],
+      ["stock $gte/$lte", "db.garments.find({ stock: { $gte: 20, $lte: 35 } })"],
+      ["category $in", 'db.garments.find({ category: { $in: ["Ethnic", "Accessories"] } })'],
+      ["price $lt 2000", "db.garments.find({ price: { $lt: 2000 } })"],
+      ["updateOne", "db.garments.updateOne({ itemId: 101 }, { $set: { price: 2700 } })"],
+      ["updateMany $inc", 'db.garments.updateMany({ category: "Ethnic" }, { $inc: { price: 200 } })'],
+      ["deleteOne", "db.garments.deleteOne({ itemId: 105 })"],
+      ["deleteMany", "db.garments.deleteMany({ price: { $lt: 1000 } })"],
+      ["sort price desc", "db.garments.find({}, { _id: 0, itemId: 1, name: 1, price: 1 }).sort({ price: -1 })"],
+      ["top 3", "db.garments.find({}, { _id: 0, itemId: 1, name: 1, price: 1 }).sort({ price: -1 }).limit(3)"],
+      ["countDocuments", "db.garments.countDocuments()"],
+      ["count Ethnic", 'db.garments.countDocuments({ category: "Ethnic" })'],
+      ["show dbs", "show dbs"]
+    ];
+    var chips = document.getElementById("chips");
+    samples.forEach(function (s) {
+      var b = document.createElement("button");
+      b.textContent = s[0];
+      b.addEventListener("click", function () { input.value = s[1]; input.focus(); });
+      chips.appendChild(b);
+    });
+
+    print("The Style Edit - MongoDB Shell Practice");
+    print("Tip: run the sample commands from top to bottom, one at a time.");
+  </script>
+</body>
+</html>
